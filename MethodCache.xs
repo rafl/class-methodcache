@@ -127,11 +127,13 @@ get_cached_method (sv)
 		SV *sv
 	PREINIT:
 		GV *gv = sv_gv(sv);
-	PPCODE:
-		if ( GvCV(gv) && GvCVGEN(gv) == HvCURGEN(GvSTASH(gv)) )
-			XPUSHs(sv_2mortal(newRV_inc((SV *)GvCV(gv))));
-		else
-			XPUSHs(&PL_sv_undef);
+	CODE:
+		if ( !GvCV(gv) || GvCVGEN(gv) != HvCURGEN(GvSTASH(gv)) )
+			XSRETURN_UNDEF;
+
+		RETVAL = newRV_inc((SV *)GvCV(gv));
+	OUTPUT:
+		RETVAL
 
 void
 set_cached_method (sv, cv_sv)
@@ -164,13 +166,15 @@ get_cv (sv)
 		SV *sv
 	PREINIT:
 		GV *gv = sv_gv(sv);
-	PPCODE:
-		if ( GvCV(gv) )
-			XPUSHs(sv_2mortal(newRV_inc((SV *)GvCV(gv))));
-		else
-			XPUSHs(&PL_sv_undef);
+	CODE:
+		if ( !GvCV(gv) )
+			XSRETURN_UNDEF;
 
-SV *
+		RETVAL = newRV_inc((SV *)GvCV(gv));
+	OUTPUT:
+		RETVAL
+
+void
 set_cv (sv, cv_sv)
 	INPUT:
 		SV *sv
@@ -178,7 +182,7 @@ set_cv (sv, cv_sv)
 	PREINIT:
 		CV *cv;
 		GV *gv = sv_gv(sv);
-	PPCODE:
+	CODE:
 		if ( !SvOK(cv_sv) ) {
 			cv = NULL;
 		} else if ( SvROK(cv_sv) && SvTYPE(SvRV(cv_sv)) == SVt_PVCV ) {
