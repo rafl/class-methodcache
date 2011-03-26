@@ -14,6 +14,10 @@
 	#define HvCURGEN(stash) PL_sub_generation
 #endif
 
+#ifndef GvCV_set
+#  define GvCV_set(gv, cv)  GvCV(gv) = cv
+#endif
+
 STATIC GV *sv_gv(SV *sv) {
 	if ( sv ) {
 		if ( SvROK(sv) )
@@ -114,7 +118,7 @@ delete_cv (sv)
 	CODE:
 		if ( GvCV(gv) )
 			SvREFCNT_dec(GvCV(gv));
-		GvCV(gv) = NULL;
+		GvCV_set(gv, NULL);
 		GvCVGEN(gv) = 0;
 
 SV *
@@ -148,7 +152,7 @@ set_cached_method (sv, cv_sv)
 				SvREFCNT_dec(GvCV(gv));
 			}
 			SvREFCNT_inc(cv);
-			GvCV(gv) = cv;
+			GvCV_set(gv, cv);
 			GvCVGEN(gv) = HvCURGEN(GvSTASH(gv));
 		} else {
 			Perl_croak(aTHX_ "Setting a cached method in a cached GV might cause strange things to happen.");
@@ -186,7 +190,7 @@ set_cv (sv, cv_sv)
 
 		if ( GvCV(gv) )
 			SvREFCNT_dec(GvCV(gv));
-		GvCV(gv) = cv;
+		GvCV_set(gv, cv);
 
 
 U32
